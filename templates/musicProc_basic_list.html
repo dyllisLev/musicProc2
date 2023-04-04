@@ -1,0 +1,307 @@
+{% extends "base.html" %}
+{% block content %}
+ 
+<div>
+  <form id="form_search" class="form-inline" style="text-align:left">
+    <div class="container-fluid">
+      <div class="row show-grid">
+        <span class="col-md-2">
+          <select id="option" name="option" class="form-control form-control-sm">
+            <option value="all">전체</option>
+            <option value="1">정상</option>
+            <option value="2">중복</option>
+            <option value="3">매칭실패</option>
+            <option value="4">태그정보없음</option>
+            <option value="5">검색결과없음</option>
+            <option value="6">오류</option>
+            <option value="7">중복삭제</option>
+            <option value="8">장르예외</option>
+          </select>
+        </span>
+        <span class="col-md-8">
+          <input id="search_word" name="search_word" class="form-control form-control-sm w-75" type="text" placeholder="" aria-label="Search">
+          <button id="search" class="btn btn-sm btn-outline-success">검색</button>
+          <button id="reset_btn" class="btn btn-sm btn-outline-success">리셋</button>
+        </span>
+        <span class="col-md-2"></span>
+      </div> 
+    </div>
+  </form>
+  <div id='page1'></div>
+  {{ macros.m_hr_head_top() }}
+  {{ macros.m_row_start('0') }}
+  <div class="col-sm-2" style="text-align:center; word-break:break-all;">
+    <strong>상태</strong>
+  </div>
+  <div class="col-sm-2" style="text-align:center; word-break:break-all;">
+    <strong>분류</strong>
+  </div>
+  <div class="col-sm-6" style="text-align:center; word-break:break-all;">
+    <strong>정보</strong>
+  </div>
+  <div class="col-sm-2" style="text-align:center; word-break:break-all;">
+    <strong>기능</strong>
+  </div>
+  {{ macros.m_row_end() }}
+  {{ macros.m_hr_head_bottom() }}
+  <div id="list_div"></div>
+  <div id='page2'></div>
+</div>
+
+<script type="text/javascript">
+var package_name = "{{arg['package_name'] }}";
+var current_data = null;
+var dataList = null;
+function request_search(page, move_top=true) {
+  var formData = get_formdata('#form_search')
+  formData += '&page=' + page;
+  $.ajax({
+    url: '/' + package_name + '/ajax/select',
+    type: "POST", 
+    cache: false,
+    data: formData,
+    dataType: "json",
+    success: function (data) {
+      current_data = data;
+      if (move_top)
+        window.scrollTo(0,0);
+      make_list(data.list)
+      make_page_html(data.paging)
+    }
+  });
+}
+
+function make_list(data) {
+  str = '';
+  for (i in data) {
+    str += '<div class="row" style="padding-top: 0px; padding-bottom:0px; align-items:center;">';
+    str += '<div class="col-sm-2" style="text-align:center; word-break:break-all;font-weight:bold">';
+    str += data[i].status+'<br/>'+data[i].created_time;
+    str += '</div>';
+    str += '<div class="col-sm-2" style="text-align:center; word-break:break-all;">';
+    str += '<div style="position: inherit;top: 25px;">TAG 정보</div>';
+    str += '<hr style="width: 100%; margin:25px;margin-top: 75px;">';
+    str += '검색결과';
+    str += '</div>';
+    str += '<div class="col-sm-6" style="text-align:left; word-break:break-all;">';
+    str += '파일경로 : ' + data[i].filePath + '<br> ';
+    str += '<hr style="width: 100%; margin:5px;">';
+    str += '제목 : ' + data[i].titleByTag + '<br>';
+    str += '가수 : ' + data[i].artistByTag + '<br>';
+    str += '앨범 : ' + data[i].albumByTag + '<br>';
+    str += '<hr style="width: 100%; margin:5px;">';
+    str += '제목 : ' + data[i].title + '<br>';
+    str += '가수 : ' + data[i].artist + '<br>';
+    str += '앨범 : ' + data[i].album + '<br>';
+    str += '</div>';
+    str += '<div class="col-sm-2" style="text-align:left; word-break:break-all;">';
+    str += '<button id="updateTag_btn" name="updateTag_btn" class="btn btn-sm btn-outline-success"  data-id="'+data[i].id+'" >TAG 수정</button>';
+    str += '<button id="shazamSearch_btn" name="shazamSearch_btn" class="btn btn-sm btn-outline-success"  data-id="'+data[i].id+'" data-filePath="'+data[i].filePath+'" >shazam검색</button>';
+    str += '<button id="search_btn" name="search_btn" class="btn btn-sm btn-outline-success"  data-id="'+data[i].id+'" data-searchKey="'+data[i].searchKey+'" >멜론검색</button>';
+    
+    str += '</div>';
+    str += '</div>';
+    if (i != data.length -1) str += '<hr style="width: 100%; margin:5px;" />';
+     
+  }
+  dataList = data;
+  document.getElementById("list_div").innerHTML = str;
+}
+
+$(document).ready(function(){
+  globalRequestSearch("1");
+});
+
+$("#search").click(function(e) {
+  e.preventDefault();
+  globalRequestSearch("1");
+});
+
+$("body").on('click', '#page', function(e){
+  e.preventDefault();
+  gloablSearchPageBtn($(this).data('page'));
+});
+
+$("#reset_btn").click(function(e) {
+  e.preventDefault();
+  document.getElementById("search_word").value = '';
+  globalRequestSearch("1");
+});
+
+
+$("body").on('click', '#search_btn', function(e){
+
+  var id = $(this).data("id");
+  var searchKey = $(this).data("searchkey");
+  
+  if ( searchKey == "" ){
+    for( i = 0 ; i < dataList.length ; i++ ){
+      if( id == dataList[i].id ){
+        searchKey = dataList[i].searchkey;
+        break;
+      }
+    }
+  }
+  
+  var url = "https://www.melon.com/search/song/index.htm?q="+searchKey;  
+  window.open(url, "_blank");  
+  
+});
+$("body").on('click', '#updateTag_btn', function(e){
+  e.preventDefault();
+  id = $(this).data("id");
+  html = $(this).parent().parent().find(".col-sm-6").html();
+
+  title = "";
+  artist = "";
+  album = "";
+  for( i = 0 ; i < dataList.length ; i++ ){
+    if( id == dataList[i].id ){
+      title = dataList[i].titleByTag;
+      artist = dataList[i].artistByTag;
+      album = dataList[i].albumByTag;
+      dataList[i].html = html;
+    }
+  }
+  str = html.substring(0,html.indexOf("\>제목")+1);
+  str += "<label for='title' style='margin-bottom: 0;'>제목</label> : <input type='text' id='title' name='title' style='display: initial;height: 20px;' class='form-control form-control-sm w-50' value='"+title+"'/><br>";
+  str += "<label for='artist' style='margin-bottom: 0;'>가수</label> : <input type='text' id='artist' name='artist' style='display: initial;height: 20px;' class='form-control form-control-sm w-50' value='"+artist+"'/><br>";
+  str += "<label for='album' style='margin-bottom: 0;'>앨범</label> : <input type='text' id='album' name='album' style='display: initial;height: 20px;' class='form-control form-control-sm w-50' value='"+album+"'/>";
+  str += '<button id="update_btn" name="update_btn" class="btn btn-sm btn-outline-success" style="position: relative;top: -33px;right: -24px;margin-bottom: -24px; margin-left: 3px;" data-id="'+id+'">수정</button>';
+  str += '<button id="cancel_btn" name="cancel_btn" class="btn btn-sm btn-outline-success" style="position: relative;top: -33px;right: -24px;margin-bottom: -24px; margin-left: 3px;" data-id="'+id+'">취소</button><br>';
+  
+  str += html.substring( html.indexOf("\>\<hr ")+1 , html.length )
+  
+  $(this).parent().parent().find(".col-sm-6").html(str);
+  
+  
+});
+$("body").on('click', '#update_btn', function(e){
+  e.preventDefault();
+  id = $(this).data("id");
+  title = $(this).parent().find("#title").val();
+  artist = $(this).parent().find("#artist").val();
+  album = $(this).parent().find("#album").val();
+
+  $.ajax({
+    url: '/'+PACKAGE_NAME+'/ajax/' + MODULE_NAME + '/update_tag',
+    type: "POST", 
+    cache: false,
+    data:{command:"update_tag", id:id, title:title, artist:artist, album:album},
+    dataType: "json",
+    success: function (ret) {
+      if (ret.msg != null) notify(ret.msg, ret.ret);
+      if (ret.modal != null) showModal(ret.modal, ret.title, false);
+      if (ret.json != null) showModal(ret.json, ret.title, true);
+      if (callback != null) callback(ret);
+      if (ret.reload) location.reload();
+      if (ret) {
+        $.notify('<strong>수정하였습니다.</strong>', {
+          type: 'success'
+        });
+        request_search(current_data.paging.current_page, false)
+      } else {
+        $.notify('<strong>수정 실패</strong>', {
+          type: 'warning'
+        });
+      }
+    }
+  });
+
+});
+
+$("body").on('click', '#cancel_btn', function(e){
+  e.preventDefault();
+  id = $(this).data("id");
+  for( i = 0 ; i < dataList.length ; i++ ){
+    if( id == dataList[i].id ){
+      $(this).parent().html(dataList[i].html);
+    }
+  }
+});
+$("body").on('click', '#shazamSearch_btn', function(e){
+  e.preventDefault();
+
+  id = $(this).data("id");
+  filePath = $(this).data('filepath');
+
+  colSm6 = $(this).parent().parent().find(".col-sm-6");
+  html = colSm6.html();
+
+  $.ajax({
+    url: '/' + package_name + '/ajax/shazam_tag',
+    type: "POST",
+    cache: false,
+    data: {filePath:filePath},
+    dataType: "json",
+    success: function (ret) {
+      
+
+      if (ret == 'fail' || ret.result == 'False') {
+        $.notify('<strong>검색 실패</strong>', {
+          type: 'warning'
+        });
+      } else {
+        
+        for( i = 0 ; i < dataList.length ; i++ ){
+          if( id == dataList[i].id ){
+            dataList[i].titleByTag = ret.title;
+            dataList[i].artistByTag = ret.artist;
+            dataList[i].albumByTag = ret.album;
+            dataList[i].searchkey = ret.title + " " + ret.artist + " " + ret.album;
+            
+          }
+        }
+        
+        
+        // debugger;
+        str = html.substring(0,html.indexOf("\>제목")+1);
+        str += "<label for='title' style='margin-bottom: 0;'>제목</label> : <input type='text' id='title' name='title' style='display: initial;height: 20px;' class='form-control form-control-sm w-50' value='"+ret.title+"'/><br>";
+        str += "<label for='artist' style='margin-bottom: 0;'>가수</label> : <input type='text' id='artist' name='artist' style='display: initial;height: 20px;' class='form-control form-control-sm w-50' value='"+ret.artist+"'/><br>";
+        str += "<label for='album' style='margin-bottom: 0;'>앨범</label> : <input type='text' id='album' name='album' style='display: initial;height: 20px;' class='form-control form-control-sm w-50' value='"+ret.album+"'/>";
+        str += '<button id="update_btn" name="update_btn" class="btn btn-sm btn-outline-success" style="position: relative;top: -33px;right: -24px;margin-bottom: -24px; margin-left: 3px;" data-id="'+id+'">수정</button>';
+        str += '<button id="cancel_btn" name="cancel_btn" class="btn btn-sm btn-outline-success" style="position: relative;top: -33px;right: -24px;margin-bottom: -24px; margin-left: 3px;" data-id="'+id+'">취소</button><br>';
+        
+        str += html.substring( html.indexOf("\>\<hr ")+1 , html.length );
+
+        colSm6.html(str);
+        
+        $.notify('<strong>조회하였습니다.</strong>', {
+          type: 'success'
+        });
+        // request_search(current_data.paging.current_page, false)
+      }
+    }
+  });
+  
+
+
+  // html = $(this).parent().parent().find(".col-sm-6").html();
+
+  // title = "";
+  // artist = "";
+  // album = "";
+  // for( i = 0 ; i < dataList.length ; i++ ){
+  //   if( id == dataList[i].id ){
+  //     title = dataList[i].titleByTag;
+  //     artist = dataList[i].artistByTag;
+  //     album = dataList[i].albumByTag;
+  //     dataList[i].html = html;
+  //   }
+  // }
+  // str = html.substring(0,html.indexOf("\>제목")+1);
+  // str += "<label for='title' style='margin-bottom: 0;'>제목</label> : <input type='text' id='title' name='title' style='display: initial;height: 20px;' class='form-control form-control-sm w-50' value='"+title+"'/><br>";
+  // str += "<label for='artist' style='margin-bottom: 0;'>가수</label> : <input type='text' id='artist' name='artist' style='display: initial;height: 20px;' class='form-control form-control-sm w-50' value='"+artist+"'/><br>";
+  // str += "<label for='album' style='margin-bottom: 0;'>앨범</label> : <input type='text' id='album' name='album' style='display: initial;height: 20px;' class='form-control form-control-sm w-50' value='"+album+"'/>";
+  // str += '<button id="update_btn" name="update_btn" class="btn btn-sm btn-outline-success" style="position: relative;top: -33px;right: -24px;margin-bottom: -24px; margin-left: 3px;" data-id="'+id+'">수정</button>';
+  // str += '<button id="cancel_btn" name="cancel_btn" class="btn btn-sm btn-outline-success" style="position: relative;top: -33px;right: -24px;margin-bottom: -24px; margin-left: 3px;" data-id="'+id+'">취소</button><br>';
+  
+  // str += html.substring( html.indexOf("\>\<hr ")+1 , html.length )
+  
+  // $(this).parent().parent().find(".col-sm-6").html(str);
+  
+  
+});
+
+</script>    
+{% endblock %}
