@@ -183,30 +183,40 @@ $("body").on('click', '#update_btn', function(e){
   artist = $(this).parent().find("#artist").val();
   album = $(this).parent().find("#album").val();
 
-  $.ajax({
-    url: '/'+PACKAGE_NAME+'/ajax/' + MODULE_NAME + '/update_tag',
-    type: "POST", 
-    cache: false,
-    data:{command:"update_tag", id:id, title:title, artist:artist, album:album},
-    dataType: "json",
-    success: function (ret) {
-      if (ret.msg != null) notify(ret.msg, ret.ret);
-      if (ret.modal != null) showModal(ret.modal, ret.title, false);
-      if (ret.json != null) showModal(ret.json, ret.title, true);
-      if (callback != null) callback(ret);
-      if (ret.reload) location.reload();
-      if (ret) {
-        $.notify('<strong>수정하였습니다.</strong>', {
-          type: 'success'
-        });
-        request_search(current_data.paging.current_page, false)
-      } else {
-        $.notify('<strong>수정 실패</strong>', {
-          type: 'warning'
-        });
-      }
-    }
+  var formData = getFormdata('#update_tag')
+  formData += '&id=' + id;
+  formData += '&title=' + title;
+  formData += '&artist=' + artist;
+  formData += '&album=' + album;
+
+  globalSendCommand("update_tag", formData, null, null, function(ret) {
+    console.log(ret);
   });
+ 
+  // $.ajax({
+  //   url: '/'+PACKAGE_NAME+'/ajax/' + MODULE_NAME + '/command',
+  //   type: "POST", 
+  //   cache: false,
+  //   data:{command:"update_tag", arg1:id, arg2:title, arg3:artist, arg4:album},
+  //   dataType: "json",
+  //   success: function (ret) {
+  //     if (ret.msg != null) notify(ret.msg, ret.ret);
+  //     if (ret.modal != null) showModal(ret.modal, ret.title, false);
+  //     if (ret.json != null) showModal(ret.json, ret.title, true);
+  //     if (callback != null) callback(ret);
+  //     if (ret.reload) location.reload();
+  //     if (ret) {
+  //       $.notify('<strong>수정하였습니다.</strong>', {
+  //         type: 'success'
+  //       });
+  //       request_search(current_data.paging.current_page, false)
+  //     } else {
+  //       $.notify('<strong>수정 실패</strong>', {
+  //         type: 'warning'
+  //       });
+  //     }
+  //   }
+  // });
 
 });
 

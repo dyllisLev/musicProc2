@@ -57,20 +57,22 @@ class ModuleBasic(PluginModuleBase):
     
     def process_command(self, command, arg1, arg2, arg3, req):
         logger.debug(f'process_command IN %s'%command)
+
+
+        param = self.parse_params(arg1)
         logger.debug(f'process_command IN %s'%arg1)
-        logger.debug(f'process_command IN %s'%arg2)
-        logger.debug(f'process_command IN %s'%arg3)
-        logger.debug(f'process_command IN %s'%req)
+        logger.debug(f'process_command IN %s'%param)
+
         ret = {'ret': 'success'}
         if command == 'update_tag':
             None
-            # mp = musicProc(P)
-            # mp.tagUpdate()
-            # ret = LogicNormal.tagUpdate(request)
+            mp = musicProc(P)
+            ret = mp.tagUpdate(param)
+           
             # return jsonify(ret)
 
             # data = self.do_action(mode=command)
-            # if data['status'] == 'fail':
+            # if ret['status'] == 'fail':
             #     ret['modal'] = d(data['data'])
             #     ret['title'] = '에러'
             #     ret['data'] = data
@@ -210,3 +212,14 @@ class ModuleBasic(PluginModuleBase):
                 ret.append(item)
         P.logger.info(d(ret))
         return ret
+    def parse_params(self, input_string):
+        # 문자열을 '&'로 split하여 각 key=value 쌍으로 분리
+        key_values = input_string.split('&')[1:]
+
+        # key=value 쌍을 dict 형태로 변환
+        params = {}
+        for key_value in key_values:
+            key, value = key_value.split('=')
+            params[key] = value
+
+        return params

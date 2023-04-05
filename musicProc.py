@@ -738,3 +738,74 @@ class musicProc:
 
 
                     audio.save(filePath)
+
+    def tagUpdate(self, req):
+
+        P = self.P
+
+        id = ""
+        title = ""
+        artist = ""
+        album = ""
+        
+        if len( req['id'] ) > 0:
+            id = int(req['id'])
+        if len( req['title'] ) > 0:
+            title = str(req['title'])
+        if len( req['artist'] ) > 0:
+            artist = str(req['artist'])
+        if len( req['album'] ) > 0:
+            album = str(req['album'])
+        
+        P.logger.debug('id : ' + str(id))
+        P.logger.debug('title : ' + str(title))
+        P.logger.debug('artist : ' + str(artist))
+        P.logger.debug('album : ' + str(album))
+        
+        
+        # entity = ModelItem.get(id)
+        # filePath = entity.filePath
+        # logger.debug("filePath : "  + filePath)
+        # if os.path.isfile(filePath):
+        #     logger.debug("파일존재 확인"  + filePath)
+        #     ext = filePath.split(".")[-1]
+        #     if ext.upper() == "MP3":
+        #         try:
+        #             tags = ID3(filePath)
+        #             tags.add(TALB(text=[album]))
+        #             tags.add(TIT2(text=[title]))
+        #             tags.add(TPE1(text=[artist]))
+        #             tags.save()
+        #         except ID3NoHeaderError:
+        #             logger.debug("MP3 except")
+        #             tags = ID3()
+        #             tags.add(TALB(text=[album]))
+        #             tags.add(TIT2(text=[title]))
+        #             tags.add(TPE1(text=[artist]))
+        #             tags.save(filePath)
+        #     if "M4A" == ext.upper() :
+                
+        #         tags = MP4(filePath)
+        #         tags['\xa9nam'][0] = title
+        #         tags['\xa9ART'][0] = artist
+        #         tags['\xa9alb'][0] = album
+        #         tags.save()
+                
+                
+        #     if "FLAC" == ext.upper() :
+
+        #         tags = FLAC(filePath)
+        #         tags['title'] = str(title)
+        #         tags['artist'] = str(artist)
+        #         tags['album'] = str(album)
+        #         tags.save()
+                
+        #     logger.debug("파일처리시작"  + filePath)
+        #     LogicNormal.mp3FileProc(filePath)
+
+        #     ModelItem.delete(id)
+            
+        #     ret = {}
+        #     return ret
+        # else:
+        #     return   
