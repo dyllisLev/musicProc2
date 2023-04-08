@@ -3,7 +3,7 @@ from .setup import *
 
 class ModelMusicItem(ModelBase):
     P = P
-    __tablename__ = 'musicProc_item'
+    __tablename__ = 'musicProc2_item'
     __table_args__ = {'mysql_collate': 'utf8_general_ci'}
     __bind_key__ = P.package_name
 
