@@ -10,6 +10,7 @@ class ModelMusicItem(ModelBase):
     id = db.Column(db.Integer, primary_key=True)
     created_time = db.Column(db.DateTime)
 
+    status = db.Column(db.String)
     title = db.Column(db.String)
     artist = db.Column(db.String)
     album = db.Column(db.String)

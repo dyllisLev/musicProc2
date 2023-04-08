@@ -53,22 +53,11 @@ var package_name = "{{arg['package_name'] }}";
 var current_data = null;
 var dataList = null;
 function request_search(page, move_top=true) {
-  var formData = get_formdata('#form_search')
-  formData += '&page=' + page;
-  $.ajax({
-    url: '/' + package_name + '/ajax/select',
-    type: "POST", 
-    cache: false,
-    data: formData,
-    dataType: "json",
-    success: function (data) {
-      current_data = data;
-      if (move_top)
-        window.scrollTo(0,0);
-      make_list(data.list)
-      make_page_html(data.paging)
-    }
-  });
+
+  globalRequestSearch("1");
+  if (move_top){
+    window.scrollTo(0,0);
+  }
 }
 
 function make_list(data) {
@@ -190,34 +179,18 @@ $("body").on('click', '#update_btn', function(e){
   formData += '&album=' + album;
 
   globalSendCommand("update_tag", formData, null, null, function(ret) {
-    console.log(ret);
+    if (ret) {
+      $.notify('<strong>수정하였습니다.</strong>', {
+        type: 'success'
+      });
+      request_search(current_data.paging.current_page, false);
+    } else {
+      $.notify('<strong>수정 실패</strong>', {
+        type: 'warning'
+      });
+    }
   });
  
-  // $.ajax({
-  //   url: '/'+PACKAGE_NAME+'/ajax/' + MODULE_NAME + '/command',
-  //   type: "POST", 
-  //   cache: false,
-  //   data:{command:"update_tag", arg1:id, arg2:title, arg3:artist, arg4:album},
-  //   dataType: "json",
-  //   success: function (ret) {
-  //     if (ret.msg != null) notify(ret.msg, ret.ret);
-  //     if (ret.modal != null) showModal(ret.modal, ret.title, false);
-  //     if (ret.json != null) showModal(ret.json, ret.title, true);
-  //     if (callback != null) callback(ret);
-  //     if (ret.reload) location.reload();
-  //     if (ret) {
-  //       $.notify('<strong>수정하였습니다.</strong>', {
-  //         type: 'success'
-  //       });
-  //       request_search(current_data.paging.current_page, false)
-  //     } else {
-  //       $.notify('<strong>수정 실패</strong>', {
-  //         type: 'warning'
-  //       });
-  //     }
-  //   }
-  // });
-
 });
 
 $("body").on('click', '#cancel_btn', function(e){
@@ -238,16 +211,14 @@ $("body").on('click', '#shazamSearch_btn', function(e){
   colSm6 = $(this).parent().parent().find(".col-sm-6");
   html = colSm6.html();
 
-  $.ajax({
-    url: '/' + package_name + '/ajax/shazam_tag',
-    type: "POST",
-    cache: false,
-    data: {filePath:filePath},
-    dataType: "json",
-    success: function (ret) {
-      
-
-      if (ret == 'fail' || ret.result == 'False') {
+  var formData = getFormdata('#shazam_tag')
+  formData += '&id=' + id;
+  formData += '&filePath=' + filePath;
+  
+  
+  globalSendCommand("shazam_tag", formData, null, null, function(ret) {
+    
+    if (ret == 'fail' || ret.result == 'False') {
         $.notify('<strong>검색 실패</strong>', {
           type: 'warning'
         });
@@ -262,7 +233,6 @@ $("body").on('click', '#shazamSearch_btn', function(e){
             
           }
         }
-        
         
         // debugger;
         str = html.substring(0,html.indexOf("\>제목")+1);
@@ -279,37 +249,9 @@ $("body").on('click', '#shazamSearch_btn', function(e){
         $.notify('<strong>조회하였습니다.</strong>', {
           type: 'success'
         });
-        // request_search(current_data.paging.current_page, false)
+        request_search(current_data.paging.current_page, false);
       }
-    }
   });
-  
-
-
-  // html = $(this).parent().parent().find(".col-sm-6").html();
-
-  // title = "";
-  // artist = "";
-  // album = "";
-  // for( i = 0 ; i < dataList.length ; i++ ){
-  //   if( id == dataList[i].id ){
-  //     title = dataList[i].titleByTag;
-  //     artist = dataList[i].artistByTag;
-  //     album = dataList[i].albumByTag;
-  //     dataList[i].html = html;
-  //   }
-  // }
-  // str = html.substring(0,html.indexOf("\>제목")+1);
-  // str += "<label for='title' style='margin-bottom: 0;'>제목</label> : <input type='text' id='title' name='title' style='display: initial;height: 20px;' class='form-control form-control-sm w-50' value='"+title+"'/><br>";
-  // str += "<label for='artist' style='margin-bottom: 0;'>가수</label> : <input type='text' id='artist' name='artist' style='display: initial;height: 20px;' class='form-control form-control-sm w-50' value='"+artist+"'/><br>";
-  // str += "<label for='album' style='margin-bottom: 0;'>앨범</label> : <input type='text' id='album' name='album' style='display: initial;height: 20px;' class='form-control form-control-sm w-50' value='"+album+"'/>";
-  // str += '<button id="update_btn" name="update_btn" class="btn btn-sm btn-outline-success" style="position: relative;top: -33px;right: -24px;margin-bottom: -24px; margin-left: 3px;" data-id="'+id+'">수정</button>';
-  // str += '<button id="cancel_btn" name="cancel_btn" class="btn btn-sm btn-outline-success" style="position: relative;top: -33px;right: -24px;margin-bottom: -24px; margin-left: 3px;" data-id="'+id+'">취소</button><br>';
-  
-  // str += html.substring( html.indexOf("\>\<hr ")+1 , html.length )
-  
-  // $(this).parent().parent().find(".col-sm-6").html(str);
-  
   
 });
 

@@ -13,7 +13,7 @@ from shazamio import Shazam
 import requests
 from lxml import html
 
-class musicProc:
+class musicProc2:
     
     session = requests.Session()
     headers = {
@@ -762,50 +762,77 @@ class musicProc:
         P.logger.debug('artist : ' + str(artist))
         P.logger.debug('album : ' + str(album))
         
-        
-        # entity = ModelItem.get(id)
-        # filePath = entity.filePath
-        # logger.debug("filePath : "  + filePath)
-        # if os.path.isfile(filePath):
-        #     logger.debug("파일존재 확인"  + filePath)
-        #     ext = filePath.split(".")[-1]
-        #     if ext.upper() == "MP3":
-        #         try:
-        #             tags = ID3(filePath)
-        #             tags.add(TALB(text=[album]))
-        #             tags.add(TIT2(text=[title]))
-        #             tags.add(TPE1(text=[artist]))
-        #             tags.save()
-        #         except ID3NoHeaderError:
-        #             logger.debug("MP3 except")
-        #             tags = ID3()
-        #             tags.add(TALB(text=[album]))
-        #             tags.add(TIT2(text=[title]))
-        #             tags.add(TPE1(text=[artist]))
-        #             tags.save(filePath)
-        #     if "M4A" == ext.upper() :
+        db_item = ModelMusicItem()
+        entity = db_item.get_by_id(id)
+        filePath = entity.filePath
+        P.logger.debug("filePath : "  + filePath)
+        if os.path.isfile(filePath):
+            P.logger.debug("파일존재 확인"  + filePath)
+            ext = filePath.split(".")[-1]
+            if ext.upper() == "MP3":
+                try:
+                    tags = ID3(filePath)
+                    tags.add(TALB(text=[album]))
+                    tags.add(TIT2(text=[title]))
+                    tags.add(TPE1(text=[artist]))
+                    tags.save()
+                except ID3NoHeaderError:
+                    logger.debug("MP3 except")
+                    tags = ID3()
+                    tags.add(TALB(text=[album]))
+                    tags.add(TIT2(text=[title]))
+                    tags.add(TPE1(text=[artist]))
+                    tags.save(filePath)
+            if "M4A" == ext.upper() :
                 
-        #         tags = MP4(filePath)
-        #         tags['\xa9nam'][0] = title
-        #         tags['\xa9ART'][0] = artist
-        #         tags['\xa9alb'][0] = album
-        #         tags.save()
+                tags = MP4(filePath)
+                tags['\xa9nam'][0] = title
+                tags['\xa9ART'][0] = artist
+                tags['\xa9alb'][0] = album
+                tags.save()
                 
                 
-        #     if "FLAC" == ext.upper() :
+            if "FLAC" == ext.upper() :
 
-        #         tags = FLAC(filePath)
-        #         tags['title'] = str(title)
-        #         tags['artist'] = str(artist)
-        #         tags['album'] = str(album)
-        #         tags.save()
+                tags = FLAC(filePath)
+                tags['title'] = str(title)
+                tags['artist'] = str(artist)
+                tags['album'] = str(album)
+                tags.save()
                 
-        #     logger.debug("파일처리시작"  + filePath)
-        #     LogicNormal.mp3FileProc(filePath)
+            P.logger.debug("파일처리시작"  + filePath)
+            self.mp3FileProc(filePath)
 
-        #     ModelItem.delete(id)
+            db_item.delete_by_id(id)
             
-        #     ret = {}
-        #     return ret
-        # else:
-        #     return   
+            ret = {}
+            return ret
+        else:
+            return   
+    
+    def shazam_tag(self, req):
+        P = self.P
+
+        if 'filePath' in req:
+            filePath = req['filePath']
+        
+
+        P.logger.debug( filePath )
+        ret = {}
+
+        if os.path.isfile(filePath):
+            P.logger.debug("파일존재 확인"  + filePath)
+            shazamTagInfo = None
+            shazamTagInfo = self.findChazam(filePath)
+            
+            if shazamTagInfo == None:
+                ret = {'result':'False'}
+            else:
+                titlaByTag = shazamTagInfo['title'].upper().strip()
+                artistByTag = shazamTagInfo['artist'].upper().strip()
+                albumByTag = shazamTagInfo['album'].upper().strip()
+                ret = {'title':titlaByTag, 'artist':artistByTag, 'album':albumByTag, 'result':'True'}
+        else:
+            ret = {'result':'False'}
+        
+        return ret
