@@ -692,26 +692,33 @@ class musicProc2:
                     audio.add(TCON(text=[genre]))
                     audio.add(USLT(text=lyrics, lang="kor", desc=""))
                     
-                    from PIL import Image
-                    import requests
-
-                    coverFile = os.path.join(os.getcwd(), 'data', 'tmp', 'cover.jpg')
-                    if os.path.isfile(coverFile):
-                        os.remove(coverFile)
-
-                    P.logger.debug("albumImage : %s " , albumImage)
-                    res = requests.get(albumImage, stream=True)
                     
-                    if "png".upper() in res.headers['Content-Type'].upper():
-                        im = Image.open(res.raw)
-                        bg = Image.new("RGB", im.size, (255,255,255))
-                        bg.paste(im,im)
-                        bg.save(coverFile)
-                    else:
-                        im = Image.open(res.raw)
-                        im.save(coverFile)
+                    try:
+                        from PIL import Image
+                        import requests
+                        
+                        coverFile = os.path.join(os.getcwd(), 'data', 'tmp', 'cover.jpg')
+                        if os.path.isfile(coverFile):
+                            os.remove(coverFile)
 
-                    audio.add(APIC(encoding=3, mime=res.headers['Content-Type'], type=3, desc=u'Cover', data=open(coverFile, 'rb').read()))
+                        P.logger.debug("albumImage : %s " , albumImage)
+                        res = requests.get(albumImage, stream=True)
+                        
+                        if "png".upper() in res.headers['Content-Type'].upper():
+                            im = Image.open(res.raw)
+                            bg = Image.new("RGB", im.size, (255,255,255))
+                            bg.paste(im,im)
+                            bg.save(coverFile)
+                        else:
+                            im = Image.open(res.raw)
+                            im.save(coverFile)
+
+                        audio.add(APIC(encoding=3, mime=res.headers['Content-Type'], type=3, desc=u'Cover', data=open(coverFile, 'rb').read()))
+                    except:
+                        logger.debug( f"커버이미지 저장오류 :{albumImage}")
+                        logger.debug( f"artist : {artist} / album :{album} / title : {title}")
+                        logger.debug( f"filePath : {filePath}")
+                        
 
                     audio.save()
                 except ID3NoHeaderError:
