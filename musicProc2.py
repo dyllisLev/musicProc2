@@ -720,9 +720,9 @@ class musicProc2:
 
                         audio.add(APIC(encoding=3, mime=res.headers['Content-Type'], type=3, desc=u'Cover', data=open(coverFile, 'rb').read()))
                     except:
-                        logger.debug( f"커버이미지 저장오류 :{albumImage}")
-                        logger.debug( f"artist : {artist} / album :{album} / title : {title}")
-                        logger.debug( f"filePath : {filePath}")
+                        P.logger.debug( f"커버이미지 저장오류 :{albumImage}")
+                        P.logger.debug( f"artist : {artist} / album :{album} / title : {title}")
+                        P.logger.debug( f"filePath : {filePath}")
                         
 
                     audio.save()
@@ -789,7 +789,7 @@ class musicProc2:
                     tags.add(TPE1(text=[artist]))
                     tags.save()
                 except ID3NoHeaderError:
-                    logger.debug("MP3 except")
+                    P.logger.debug("MP3 except")
                     tags = ID3()
                     tags.add(TALB(text=[album]))
                     tags.add(TIT2(text=[title]))
