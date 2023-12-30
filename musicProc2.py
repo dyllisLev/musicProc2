@@ -168,7 +168,7 @@ class musicProc2:
                 P.logger.debug( "url : " + url)
 
                 data = self.get_html(url)
-                P.logger.debug( data )
+                # P.logger.debug( data )
                 tree = html.fromstring(data)
 
                 lis = tree.xpath('/html/body/div[1]/form/ul/li')
