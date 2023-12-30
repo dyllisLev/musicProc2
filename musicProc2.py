@@ -698,6 +698,11 @@ class musicProc2:
                         import requests
                         
                         coverFile = os.path.join(os.getcwd(), 'data', 'tmp', 'cover.jpg')
+
+                        # 디렉토리가 없으면 생성
+                        if not os.path.exists(os.path.join(os.getcwd(), 'data', 'tmp')):
+                            os.makedirs(os.path.join(os.getcwd(), 'data', 'tmp'))
+
                         if os.path.isfile(coverFile):
                             os.remove(coverFile)
 
